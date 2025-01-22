@@ -307,3 +307,23 @@ all_si_papers_doi <- bind_rows(
 )
 
 save(all_si_papers_doi, file = "out/all_si_papers_doi.rda")
+
+
+
+
+# try to fetch crossref metadata ------------------------------------------
+
+
+# https://stackoverflow.com/a/72526861/4638884
+library(rcrossref)
+
+all_si_cref <- all_si_papers_doi %>%
+    select(doi) |>
+    pmap(function(doi){
+        cr_works(dois = doi) # returns CrossRef metadata for each doi
+    }) %>%
+    map(pluck("data")) %>% # cr_works returns a list, select only the 'data'
+    bind_rows() |>
+    bind_cols(all_si_papers_doi |> select(-doi))
+
+save(all_si_cref, file = "out/all_si_cref.rda")
